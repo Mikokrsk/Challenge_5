@@ -4,30 +4,35 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Unity.VisualScripting;
 
 public class GameManagerX : MonoBehaviour
 {
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI gameOverText;
+    public TextMeshProUGUI timeText;
     public GameObject titleScreen;
-    public Button restartButton; 
+    public Button restartButton;
 
     public List<GameObject> targetPrefabs;
 
     private int score;
+    private int startTime = 5;
     private float spawnRate = 1.5f;
     public bool isGameActive;
 
-    private float spaceBetweenSquares = 2.5f; 
+    private float spaceBetweenSquares = 2.5f;
     private float minValueX = -3.75f; //  x value of the center of the left-most square
     private float minValueY = -3.75f; //  y value of the center of the bottom-most square
-    
+
     // Start the game, remove title screen, reset score, and adjust spawnRate based on difficulty button clicked
-    public void StartGame(int difficulty )
+    public void StartGame(int difficulty)
     {
         spawnRate /= difficulty;
+        startTime *= difficulty;
         isGameActive = true;
         StartCoroutine(SpawnTarget());
+        StartCoroutine(Time());
         score = 0;
         UpdateScore(0);
         titleScreen.SetActive(false);
@@ -45,7 +50,23 @@ public class GameManagerX : MonoBehaviour
             {
                 Instantiate(targetPrefabs[index], RandomSpawnPosition(), targetPrefabs[index].transform.rotation);
             }
-            
+
+        }
+    }
+
+    IEnumerator Time()
+    {       
+        yield return new WaitForSeconds(1f);
+        timeText.text = "Time : " + startTime;
+        startTime--;
+        
+        if (startTime >= 0 && isGameActive)
+        {
+            StartCoroutine(Time());          
+        }
+        else
+        {
+            GameOver();
         }
     }
 
@@ -70,7 +91,7 @@ public class GameManagerX : MonoBehaviour
     public void UpdateScore(int scoreToAdd)
     {
         score += scoreToAdd;
-        scoreText.text = "Score :"+score;
+        scoreText.text = "Score :" + score;
     }
 
     // Stop game, bring up game over text and restart button
